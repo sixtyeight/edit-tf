@@ -1068,6 +1068,41 @@ var invalidate_export = function() {
 }
 
 
+var readDataUri = function(uri) {
+    var byteString;
+    if (uri.split(',')[0].indexOf('base64') >= 0) {
+        byteString = atob(uri.split(',')[1]);
+    } else {
+        byteString = unescape(uri.split(',')[1]);
+    }
+    return byteString;
+};
+
+
+var load_frame = function() {
+    var editor = this;
+    var row, charCode;
+
+    var uri = prompt('Enter a TTI data uri: ', uri);
+    var lines = readDataUri(uri).split('\r\n');
+    lines.forEach(function(line,i) {
+        var parts = line.split(',');
+        if (parts[0] === 'OL') {
+            row = (parts[1] -1 );
+            parts[2].split('').forEach(function(char, col) {
+                charCode = char.charCodeAt(0) % 128;
+                if ( placeable(charCode) == 1 ) {
+                    place_code(col, row, charCode, 0);
+                } else {
+                    cc[row][col] = charCode;
+                }
+            });
+        };
+    });
+    redraw();
+};
+
+
 
 ///////////////////
 ///// COLOURS /////
@@ -1558,6 +1593,9 @@ this.keypress = function(event) {
 
 		// E = export frame
 		if ( code == 69 || code == 101 ) { matched = 1; export_frame(); }
+
+    // L = load frame
+	  if ( code == 76 ) { matched = 1; load_frame(); }
 
 		// 9 = teletext metadata
 		if ( code == 57 ) {
